@@ -1,0 +1,163 @@
+
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>REACTION BOOST</title>
+<style>
+*{box-sizing:border-box}
+body{
+ margin:0;background:#09091b;color:#f1efff;
+ font-family:Arial,sans-serif;padding:25px 16px;
+}
+header{
+ max-width:700px;margin:25px auto;
+}
+h1{font-size:35px;margin-bottom:8px}
+h1 span{
+ background:linear-gradient(90deg,#9956f5,#f03caa);
+ color:transparent;background-clip:text;
+}
+.sub{color:#aaa6ca;line-height:1.6}
+.card{
+ max-width:700px;margin:18px auto;
+ padding:25px;background:#15152f;
+ border:1px solid #30305c;border-radius:22px;
+}
+h2{font-size:21px;margin-top:0}
+label{display:block;font-weight:bold;margin:18px 0 9px}
+input,select{
+ width:100%;padding:17px;border-radius:13px;
+ background:#09091e;color:white;
+ border:1px solid #34345e;font-size:16px;
+}
+.emojis{display:flex;flex-wrap:wrap;gap:9px}
+.emoji{
+ border:1px solid #45416a;background:#24213e;
+ color:white;border-radius:12px;padding:12px;
+ font-size:23px;cursor:pointer;
+}
+.emoji.active{border-color:#df43c4;background:#49234d}
+button.main{
+ width:100%;margin-top:24px;padding:17px;
+ border:0;border-radius:13px;
+ color:white;font-size:17px;font-weight:bold;
+ background:linear-gradient(90deg,#9251ed,#e43ca7);
+ cursor:pointer;
+}
+button:disabled{opacity:.5;cursor:not-allowed}
+.status{color:#b9b4d5;font-size:14px;line-height:1.6}
+.pill{
+ display:inline-block;padding:7px 13px;
+ border-radius:20px;background:#183c39;color:#61e5ba;
+ font-size:13px;
+}
+footer{text-align:center;color:#77738e;margin:35px}
+</style>
+</head>
+<body>
+<header>
+ <h1><span>REACTION</span> BOOST</h1>
+ <p class="sub">Il tuo pannello per gestire le interazioni social.</p>
+ <span class="pill" id="connection">Controllo connessione...</span>
+</header>
+
+<section class="card">
+ <h2>⚙️ Connessione API</h2>
+ <p class="status">
+ La chiave API viene configurata sul server Vercel.
+ Non inserirla nel sito pubblico.
+ </p>
+ <p id="apiStatus" class="status">Verifica in corso...</p>
+</section>
+
+<section class="card">
+ <h2>💬 WhatsApp Reaction</h2>
+
+ <label>Link del post WhatsApp</label>
+ <input id="post" type="url"
+ placeholder="https://whatsapp.com/channel/...">
+
+ <label>Emoji</label>
+ <div class="emojis" id="emojis">
+  <button class="emoji active" type="button">😮</button>
+  <button class="emoji" type="button">❤️</button>
+  <button class="emoji" type="button">🔥</button>
+  <button class="emoji" type="button">😂</button>
+  <button class="emoji" type="button">😍</button>
+  <button class="emoji" type="button">👍</button>
+ </div>
+
+ <label>Quantità desiderata</label>
+ <input id="amount" type="number" min="1" max="1000"
+ value="100">
+
+ <button class="main" id="submit" type="button">
+ VERIFICA POST
+ </button>
+ <p id="result" class="status" aria-live="polite">
+ In attesa di un link.
+ </p>
+</section>
+
+<footer>REACTION BOOST · 2026</footer>
+
+<script>
+const emojis = document.querySelectorAll(".emoji");
+let selectedEmoji = "😮";
+
+emojis.forEach(btn => {
+ btn.addEventListener("click", () => {
+  emojis.forEach(x => x.classList.remove("active"));
+  btn.classList.add("active");
+  selectedEmoji = btn.textContent;
+ });
+});
+
+async function checkConnection(){
+ try {
+  const res = await fetch("/api/status");
+  const data = await res.json();
+  document.getElementById("apiStatus").textContent =
+   data.configured ? "Server API configurato" :
+   "API non ancora configurata sul server.";
+  document.getElementById("connection").textContent =
+   data.configured ? "Server configurato" : "Setup necessario";
+ } catch {
+  document.getElementById("apiStatus").textContent =
+   "Server non raggiungibile.";
+ }
+}
+
+document.getElementById("submit").addEventListener("click",()=>{
+ const link = document.getElementById("post").value.trim();
+ const amount = Number(document.getElementById("amount").value);
+ const result = document.getElementById("result");
+
+ try {
+  const url = new URL(link);
+  if(url.hostname !== "whatsapp.com" &&
+     url.hostname !== "www.whatsapp.com") {
+   throw new Error();
+  }
+ } catch {
+  result.textContent = "Inserisci un link WhatsApp valido.";
+  return;
+ }
+
+ if(!Number.isInteger(amount) || amount < 1 || amount > 1000){
+  result.textContent = "Inserisci una quantità tra 1 e 1000.";
+  return;
+ }
+
+ result.textContent =
+  `Post verificato come formato. Emoji: ${selectedEmoji}. `+
+  `Quantità richiesta: ${amount}. `+
+  "L'invio delle reazioni richiede un'integrazione ufficiale autorizzata.";
+});
+
+checkConnection();
+</script>
+</body>
+</html>
